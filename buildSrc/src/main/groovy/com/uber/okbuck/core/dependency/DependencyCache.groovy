@@ -7,6 +7,7 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
 import java.nio.file.FileSystem
@@ -21,10 +22,10 @@ class DependencyCache {
 
     final Project rootProject
     final File cacheDir
-
     final boolean useFullDepName
     final boolean fetchSources
     final boolean extractLintJars
+    final String internalProjectsPrefix
 
     private final Configuration superConfiguration
     private final Map<VersionlessDependency, String> lintJars = [:]
@@ -32,6 +33,8 @@ class DependencyCache {
 
     private final Map<VersionlessDependency, ExternalDependency> externalDeps = [:]
     private final Map<VersionlessDependency, ProjectDependency> projectDeps = [:]
+    private final Set<DirectDependency> internal = [] as Set
+    private final Set<DirectDependency> external = [] as Set
 
     DependencyCache(
             String name,
@@ -43,7 +46,8 @@ class DependencyCache {
             boolean useFullDepName = false,
             boolean fetchSources = false,
             boolean extractLintJars = false,
-            Set<Project> depProjects = null) {
+            Set<Project> depProjects = null,
+            String internalProjectsPrefix = null) {
 
         this.rootProject = rootProject
         this.cacheDir = new File(rootProject.projectDir, cacheDirPath)
@@ -58,6 +62,7 @@ class DependencyCache {
         this.useFullDepName = useFullDepName
         this.fetchSources = fetchSources
         this.extractLintJars = extractLintJars
+        this.internalProjectsPrefix = internalProjectsPrefix
         build(cleanup, depProjects)
     }
 
@@ -87,6 +92,10 @@ class DependencyCache {
         }
     }
 
+    private isInternal(ExternalDependency dep) {
+        dep.group.startsWith(this.internalProjectsPrefix)
+    }
+
     private void build(boolean cleanup, Set<Project> depProjects) {
         Set<File> resolvedFiles = [] as Set
 
@@ -104,6 +113,21 @@ class DependencyCache {
                 externalDeps.put(dependency, dependency)
             }
             resolvedFiles.add(artifact.file)
+        }
+
+        superConfiguration.resolvedConfiguration.firstLevelModuleDependencies.each { ResolvedDependency dependency ->
+            ExternalDependency extDep = ExternalDependency.fromResolvedDependency(dependency)
+
+            if (externalDeps.containsKey(extDep.withoutClassifier())) {
+                Set<ExternalDependency> children = dependency.children.collect { ExternalDependency.fromResolvedDependency(it) }
+                DirectDependency current = new DirectDependency(extDep, children)
+                if (isInternal(extDep)) {
+                    this.internal.add(current)
+                }
+                else {
+                    this.external.add(current)
+                }
+            }
         }
 
         superConfiguration.files.findAll { File resolved ->
@@ -244,5 +268,12 @@ class DependencyCache {
             processors.createNewFile()
         }
         return processors
+    }
+
+    Set<ExternalDependency> getAllDependencies() {
+        Set<ExternalDependency> dependencies = (internal + external).inject([] as Set) {
+            accum, it ->
+                accum + it.direct + it.children
+        }
     }
 }

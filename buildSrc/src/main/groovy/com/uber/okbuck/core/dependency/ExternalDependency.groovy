@@ -4,6 +4,8 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.artifacts.ResolvedDependency
 
 class ExternalDependency extends VersionlessDependency {
 
@@ -55,5 +57,12 @@ class ExternalDependency extends VersionlessDependency {
                 baseName,
                 LOCAL_DEP_VERSION)
         return new ExternalDependency(identifier, localDep, null)
+    }
+
+    static ExternalDependency fromResolvedDependency(ResolvedDependency dependency) {
+        ModuleVersionIdentifier identifier = new DefaultModuleVersionIdentifier(dependency.moduleGroup,
+                                                                                dependency.moduleName,
+                                                                                dependency.moduleVersion)
+        return new ExternalDependency(identifier, null, null)
     }
 }

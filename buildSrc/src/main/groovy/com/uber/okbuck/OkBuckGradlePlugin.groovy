@@ -1,6 +1,7 @@
 package com.uber.okbuck
 
 import com.uber.okbuck.core.dependency.DependencyCache
+import com.uber.okbuck.core.dependency.ExternalDependency
 import com.uber.okbuck.core.model.base.ProjectType
 import com.uber.okbuck.core.model.base.TargetCache
 import com.uber.okbuck.core.model.java.JavaTarget
@@ -52,6 +53,11 @@ class OkBuckGradlePlugin implements Plugin<Project> {
     public static final String RETROLAMBDA = "retrolambda"
     public static final String CONFIGURATION_EXTERNAL = "externalOkbuck"
     public static final String OKBUCK_DEFS = ".okbuck/defs/DEFS"
+    public static final String WORKSPACE = "WORKSPACE"
+
+    // TODO: configure that in the plugin
+    public static final String INTERNAL_PROJECTS_PREFIX = "com.criteo"
+    public static final String INTERNAL_NEXUS = "http://nexus.criteo.prod/content/groups/criteodev"
 
     // Project level globals
     public DependencyCache depCache
@@ -124,7 +130,8 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                         true,
                         intellij.sources,
                         false, // false = !lint.disabled, lint.disabled = true,
-                        okbuckExt.buckProjects)
+                        okbuckExt.buckProjects,
+                        INTERNAL_PROJECTS_PREFIX)
 
                 // Fetch transform deps if needed
                 if (experimental.transform) {
@@ -143,6 +150,8 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                 if (test.robolectric) {
                     RobolectricUtil.download(project)
                 }
+                // Generate Workspace
+                generateWorkspace()
             }
 
             // Configure okbuck task
@@ -159,10 +168,29 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                         okbuckExt,
                         hasGroovyLib ? GroovyUtil.GROOVY_HOME_LOCATION : null)
             }
-
             // Configure buck projects
             configureBuckProjects(okbuckExt.buckProjects, setupOkbuck)
         }
+    }
+
+    private static String toBazelMavenJar(ExternalDependency dep) {
+        def name = [dep.group,
+                    dep.name,
+                    dep.version].collect { "${it}" }.join('_')
+        def artifact = [dep.group,
+                        dep.name,
+                        "jar",
+                        dep.version].collect { "${it}" }.join(':')
+        "maven_jar(name = ${name}, artifact = ${artifact})"
+    }
+
+    private void generateWorkspace() {
+        List<String> res = ['maven_server(',
+                            '    name = "default",',
+                            '    url = "${INTERNAL_NEXUS}",',
+                            ')']
+        res += depCache.getAllDependencies().collect { toBazelMavenJar(it) }
+        new File(this.WORKSPACE).text = (res + [""]).join("\n")
     }
 
     private static void generate(Project project, OkBuckExtension okbuckExt, String groovyHome) {
