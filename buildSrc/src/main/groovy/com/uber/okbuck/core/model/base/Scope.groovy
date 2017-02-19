@@ -29,6 +29,7 @@ class Scope {
     protected final Project project
     protected final Set<VersionlessDependency> external = [] as Set
     protected final Set<VersionlessDependency> firstLevel = [] as Set
+    protected final Set<ExternalDependency> missedExternalDependency = [] as Set
 
     Scope(Project project,
           Collection<String> configurations,
@@ -47,9 +48,21 @@ class Scope {
     }
 
     Set<String> getExternalDeps() {
-        return external.collect { VersionlessDependency dependency ->
-            depCache.get(dependency)
+        def res = external.collect { VersionlessDependency dependency ->
+            try {
+                depCache.get(dependency)
+            }
+            catch(IllegalStateException e) {
+                null
+            }
         }
+        if (res.findAll { it == null }) {
+            println "[OKBUCK] add these dependencies"
+            def msg = missedExternalDependency.collect { "compile \"${it.getGroup()}:${it.getName()}:${it.getVersion()}\"" }
+            println msg.join("\n")
+            throw new Exception("missed dependency")
+        }
+        res
     }
 
     Set<String> getPackagedLintJars() {
