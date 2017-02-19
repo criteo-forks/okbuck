@@ -1,7 +1,5 @@
 package com.uber.okbuck.core.util;
 
-import com.android.build.gradle.AppPlugin;
-import com.android.build.gradle.LibraryPlugin;
 import com.uber.okbuck.OkBuckGradlePlugin;
 import com.uber.okbuck.core.dependency.DependencyCache;
 import com.uber.okbuck.core.model.base.ProjectType;
@@ -23,11 +21,7 @@ public final class ProjectUtil {
 
     public static ProjectType getType(Project project) {
         PluginContainer plugins = project.getPlugins();
-        if (plugins.hasPlugin(AppPlugin.class)) {
-            return ProjectType.ANDROID_APP;
-        } else if (plugins.hasPlugin(LibraryPlugin.class)) {
-            return ProjectType.ANDROID_LIB;
-        } else if (plugins.hasPlugin(GroovyPlugin.class)) {
+        if (plugins.hasPlugin(GroovyPlugin.class)) {
             return ProjectType.GROOVY_LIB;
         } else if (plugins.hasPlugin(ApplicationPlugin.class)) {
             return ProjectType.JAVA_APP;

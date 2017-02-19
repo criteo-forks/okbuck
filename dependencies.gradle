@@ -7,22 +7,24 @@ def versions = [
 ]
 
 def build = [
-        androidPlugin    : "com.android.tools.build:gradle:${versions.androidPluginVersion}",
-        androidPluginApi : "com.android.tools.build:gradle-api:${versions.androidPluginVersion}",
-        butterKnifePlugin: "com.jakewharton:butterknife-gradle-plugin:${versions.butterKnifeVersion}",
-        commonsIo        : 'commons-io:commons-io:2.5',
-        commonsLang      : 'commons-lang:commons-lang:2.6',
-        mavenArtifact    : 'org.apache.maven:maven-artifact:3.3.9',
-        retrolambdaPlugin: 'me.tatarka:gradle-retrolambda:3.5.0',
-        sqlDelightPlugin : 'com.squareup.sqldelight:gradle-plugin:0.5.1',
-        shadowJar        : "com.github.jengelman.gradle.plugins:shadow:1.2.4",
+    //androidPlugin    : "com.android.tools.build:gradle:${versions.androidPluginVersion}",
+    //androidPluginApi : "com.android.tools.build:gradle-api:${versions.androidPluginVersion}",
+    butterKnifePlugin: "com.jakewharton:butterknife-gradle-plugin:${versions.butterKnifeVersion}",
+    googleCommon     : 'com.google.collections:google-collections:1.0',
+    jBAnnotations    : 'org.jetbrains:annotations:15.0',
+    commonsIo        : 'commons-io:commons-io:2.5',
+    commonsLang      : 'commons-lang:commons-lang:2.6',
+    mavenArtifact    : 'org.apache.maven:maven-artifact:3.3.9',
+    retrolambdaPlugin: 'me.tatarka:gradle-retrolambda:3.5.0',
+    sqlDelightPlugin : 'com.squareup.sqldelight:gradle-plugin:0.5.1',
+    shadowJar        : "com.github.jengelman.gradle.plugins:shadow:1.2.4",
 ]
 
 def buildConfig = [
-        compileSdk: 25,
-        buildTools: '25.0.1',
-        minSdk    : 16,
-        targetSdk : 25,
+    //compileSdk: 25,
+    //buildTools: '25.0.1',
+    //minSdk    : 16,
+    //targetSdk : 25,
 ]
 
 def apt = [
@@ -38,40 +40,40 @@ def external = [
         dagger         : "com.google.dagger:dagger:${versions.daggerVersion}",
         gson           : 'com.google.code.gson:gson:2.8.0',
         leakCanary     : "com.squareup.leakcanary:leakcanary-android:${versions.leakCanaryVersion}",
-        rxandroid      : 'io.reactivex:rxandroid:1.2.1',
+        //rxandroid      : 'io.reactivex:rxandroid:1.2.1',
         rxjava         : 'io.reactivex:rxjava:1.1.8',
         rxPermissions  : 'com.tbruyelle.rxpermissions:rxpermissions:0.5.2',
         sqlite         : 'com.pushtorefresh.storio:sqlite:1.11.0',
-        xlogAndroidIdle: 'com.github.promeg:xlog-android-idle:2.1.1',
+        //xlogAndroidIdle: 'com.github.promeg:xlog-android-idle:2.1.1',
 ]
 
 def lint = [
-        lint      : "com.android.tools.lint:lint:25.1.0",
-        lintApi   : "com.android.tools.lint:lint-api:25.1.0",
-        lintChecks: "com.android.tools.lint:lint-checks:25.1.0",
-        lintTests : "com.android.tools.lint:lint-tests:25.1.0",
+        //lint      : "com.android.tools.lint:lint:25.1.0",
+        //lintApi   : "com.android.tools.lint:lint-api:25.1.0",
+        //lintChecks: "com.android.tools.lint:lint-checks:25.1.0",
+        //lintTests : "com.android.tools.lint:lint-tests:25.1.0",
 ]
 
 def support = [
-        annotations : "com.android.support:support-annotations:${versions.supportVersion}",
-        appCompat   : "com.android.support:appcompat-v7:${versions.supportVersion}",
-        design      : "com.android.support:design:${versions.supportVersion}",
-        multidex    : 'com.android.support:multidex:1.0.1',
-        recyclerView: "com.android.support:recyclerview-v7:${versions.supportVersion}",
-        v4          : "com.android.support:support-v4:${versions.supportVersion}",
+        //annotations : "com.android.support:support-annotations:${versions.supportVersion}",
+        //appCompat   : "com.android.support:appcompat-v7:${versions.supportVersion}",
+        //design      : "com.android.support:design:${versions.supportVersion}",
+        //multidex    : 'com.android.support:multidex:1.0.1',
+        //recyclerView: "com.android.support:recyclerview-v7:${versions.supportVersion}",
+        //v4          : "com.android.support:support-v4:${versions.supportVersion}",
 ]
 
 def test = [
-        espressoCore  : 'com.android.support.test.espresso:espresso-core:2.2.2',
-        espressoRunner: 'com.android.support.test:runner:0.5',
-        junit         : 'junit:junit:4.12',
-        mockito       : 'org.mockito:mockito-core:1.10.19',
-        robolectric   : 'org.robolectric:robolectric:3.0',
-        assertj       : 'org.assertj:assertj-core:3.6.1'
+    //espressoCore  : 'com.android.support.test.espresso:espresso-core:2.2.2',
+    //  espressoRunner: 'com.android.support.test:runner:0.5',
+    junit         : 'junit:junit:4.12',
+    mockito       : 'org.mockito:mockito-core:1.10.19',
+    robolectric   : 'org.robolectric:robolectric:3.0',
+    assertj       : 'org.assertj:assertj-core:3.6.1'
 ]
 
 ext.config = [
-        "build": buildConfig,
+    "build": buildConfig,
 ]
 
 ext.deps = [

@@ -1,14 +1,12 @@
 package com.uber.okbuck
 
 import com.uber.okbuck.core.dependency.DependencyCache
-import com.uber.okbuck.core.model.android.AndroidAppTarget
 import com.uber.okbuck.core.model.base.ProjectType
 import com.uber.okbuck.core.model.base.TargetCache
 import com.uber.okbuck.core.model.java.JavaTarget
 import com.uber.okbuck.core.task.OkBuckCleanTask
 import com.uber.okbuck.core.util.FileUtil
 import com.uber.okbuck.core.util.GroovyUtil
-import com.uber.okbuck.core.util.LintUtil
 import com.uber.okbuck.core.util.ProguardUtil
 import com.uber.okbuck.core.util.ProjectUtil
 import com.uber.okbuck.core.util.RetrolambdaUtil
@@ -16,7 +14,6 @@ import com.uber.okbuck.core.util.RobolectricUtil
 import com.uber.okbuck.core.util.TransformUtil
 import com.uber.okbuck.extension.ExperimentalExtension
 import com.uber.okbuck.extension.IntellijExtension
-import com.uber.okbuck.extension.LintExtension
 import com.uber.okbuck.extension.OkBuckExtension
 import com.uber.okbuck.extension.RetrolambdaExtension
 import com.uber.okbuck.extension.TestExtension
@@ -69,7 +66,6 @@ class OkBuckGradlePlugin implements Plugin<Project> {
         ExperimentalExtension experimental = okbuckExt.extensions.create(EXPERIMENTAL, ExperimentalExtension)
         TestExtension test = okbuckExt.extensions.create(TEST, TestExtension)
         IntellijExtension intellij = okbuckExt.extensions.create(INTELLIJ, IntellijExtension)
-        LintExtension lint = okbuckExt.extensions.create(LINT, LintExtension, project)
         RetrolambdaExtension retrolambda = okbuckExt.extensions.create(RETROLAMBDA, RetrolambdaExtension)
         okbuckExt.extensions.create(TRANSFORM, TransformExtension)
 
@@ -127,13 +123,8 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                         true,
                         true,
                         intellij.sources,
-                        !lint.disabled,
+                        false, // false = !lint.disabled, lint.disabled = true,
                         okbuckExt.buckProjects)
-
-                // Fetch Lint deps if needed
-                if (!lint.disabled && lint.version != null) {
-                    LintUtil.fetchLintDeps(project, lint.version)
-                }
 
                 // Fetch transform deps if needed
                 if (experimental.transform) {
@@ -205,9 +196,6 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                 if (it instanceof JavaTarget) {
                     configurations.addAll(it.depConfigurations())
                 }
-                if (it instanceof AndroidAppTarget && it.instrumentationTarget) {
-                    configurations.addAll(it.instrumentationTarget.depConfigurations())
-                }
             }
         }
         return configurations
@@ -215,8 +203,6 @@ class OkBuckGradlePlugin implements Plugin<Project> {
 
     private static void configureBuckProjects(Set<Project> buckProjects, Task setupOkbuck) {
         buckProjects.each { Project buckProject ->
-            buckProject.configurations.maybeCreate(BUCK_LINT)
-            buckProject.configurations.maybeCreate(BUCK_LINT_LIBRARY)
             Task okbuckProjectTask = buckProject.tasks.maybeCreate(OKBUCK)
             okbuckProjectTask.doLast {
                 BuckFileGenerator.generate(buckProject)

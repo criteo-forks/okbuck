@@ -5,7 +5,6 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath deps.build.androidPlugin
         classpath deps.build.butterKnifePlugin
         classpath deps.build.retrolambdaPlugin
         classpath deps.build.sqlDelightPlugin
@@ -26,11 +25,8 @@ subprojects { project ->
     afterEvaluate {
         if (project.plugins.hasPlugin('java')) {
             addCommonConfigurationForJavaModules(project)
-        } else if (project.plugins.hasPlugin('com.android.application')
-                || project.plugins.hasPlugin('com.android.library')) {
-            addCommonConfigurationForAndroidModules(project)
-        }
 
+        }
         project.tasks.withType(Test) { Test task ->
             task.jvmArgs << "-Djava.awt.headless=true"
         }
@@ -47,105 +43,7 @@ def addCommonConfigurationForJavaModules(Project project) {
     }
 }
 
-def addCommonConfigurationForAndroidModules(Project project) {
-    project.android {
-        compileSdkVersion config.build.compileSdk
-        buildToolsVersion config.build.buildTools
-
-        defaultConfig {
-            minSdkVersion config.build.minSdk
-            targetSdkVersion config.build.targetSdk
-            vectorDrawables.useSupportLibrary = true
-            versionCode 1
-            versionName "1.0"
-        }
-
-        compileOptions {
-            if (project.plugins.hasPlugin('me.tatarka.retrolambda')) {
-                sourceCompatibility JavaVersion.VERSION_1_8
-                targetCompatibility JavaVersion.VERSION_1_8
-            } else {
-                sourceCompatibility JavaVersion.VERSION_1_7
-                targetCompatibility JavaVersion.VERSION_1_7
-            }
-        }
-
-        lintOptions {
-            lintConfig project.rootProject.file('config/lint/lint.xml')
-        }
-    }
-
-    def variants
-    if (project.plugins.hasPlugin('com.android.application')) {
-        project.android {
-            signingConfigs {
-                debug {
-                    storeFile project.rootProject.file('config/signing/debug.keystore')
-                }
-            }
-            buildTypes {
-                debug {
-                    signingConfig signingConfigs.debug
-                }
-                release {
-                    signingConfig signingConfigs.debug
-                }
-            }
-        }
-        variants = project.android.applicationVariants
-    } else {
-        variants = project.android.libraryVariants
-    }
-
-    if (project.plugins.hasPlugin('com.squareup.sqldelight')) {
-        variants.all {
-            Task okbuckTask = project.tasks.getByName("okbuck")
-            Task sqlDelightTask = project.tasks.getByName("generate${it.name.capitalize()}SqlDelightInterface")
-            okbuckTask.dependsOn(sqlDelightTask)
-            project.android.sourceSets."${it.name}".java.srcDirs += [sqlDelightTask.outputs.files[0] as String]
-        }
-    }
-}
-
 okbuck {
-    buildToolVersion = config.build.buildTools
-    target = "android-${config.build.compileSdk}"
-
-    primaryDexPatterns = [
-            'app': [
-                    '^com/uber/okbuck/example/AppShell^',
-                    '^com/uber/okbuck/example/BuildConfig^',
-                    '^android/support/multidex/',
-                    '^com/facebook/buck/android/support/exopackage/',
-                    '^com/github/promeg/xlog_android/lib/XLogConfig^',
-                    '^com/squareup/leakcanary/LeakCanary^',
-                    '^com/uber/okbuck/example/common/Calc^',
-                    '^com/uber/okbuck/example/common/BuildConfig^',
-            ]
-    ]
-    exopackage = [
-            'appDevDebug': true
-    ]
-    appLibDependencies = [
-            'appProd': [
-                    'buck-android-support',
-                    'com.android.support:multidex',
-                    'libraries/javalibrary:main',
-                    'libraries/common:paidRelease',
-            ],
-            'appDev' : [
-                    'buck-android-support',
-                    'com.android.support:multidex',
-                    'libraries/javalibrary:main',
-                    'libraries/common:freeDebug',
-            ],
-            'appDemo': [
-                    'buck-android-support',
-                    'com.android.support:multidex',
-                    'libraries/javalibrary:main',
-                    'libraries/common:paidRelease',
-            ]
-    ]
     buckProjects = project.subprojects.findAll { it.name != "plugin" && it.name != "transform-cli" }
 
     intellij {

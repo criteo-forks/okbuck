@@ -1,11 +1,5 @@
 package com.uber.okbuck.core.model.base;
 
-import com.android.build.gradle.AppExtension;
-import com.android.build.gradle.LibraryExtension;
-import com.android.build.gradle.api.BaseVariant;
-import com.android.build.gradle.api.BaseVariantOutput;
-import com.uber.okbuck.core.model.android.AndroidAppTarget;
-import com.uber.okbuck.core.model.android.AndroidLibTarget;
 import com.uber.okbuck.core.model.groovy.GroovyLibTarget;
 import com.uber.okbuck.core.model.java.JavaAppTarget;
 import com.uber.okbuck.core.model.java.JavaLibTarget;
@@ -30,26 +24,6 @@ public class TargetCache {
         if (projectTargets == null) {
             ProjectType type = ProjectUtil.getType(project);
             switch (type) {
-                case ANDROID_APP:
-                    projectTargets = new HashMap<>();
-                    for (BaseVariant v : project.getExtensions()
-                            .getByType(AppExtension.class)
-                            .getApplicationVariants()) {
-                        projectTargets.put(v.getName(), new AndroidAppTarget(project, v.getName()));
-                    }
-                    break;
-                case ANDROID_LIB:
-                    projectTargets = new HashMap<>();
-                    for (BaseVariant v : project.getExtensions()
-                            .getByType(LibraryExtension.class)
-                            .getLibraryVariants()) {
-                        Target target = new AndroidLibTarget(project, v.getName());
-                        projectTargets.put(v.getName(), target);
-                        for (BaseVariantOutput o : v.getOutputs()) {
-                            outputToTarget.put(o.getOutputFile(), target);
-                        }
-                    }
-                    break;
                 case GROOVY_LIB:
                     projectTargets = Collections.singletonMap(JvmTarget.MAIN,
                             (Target) new GroovyLibTarget(project, JvmTarget.MAIN));
