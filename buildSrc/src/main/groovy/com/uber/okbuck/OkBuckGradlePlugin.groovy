@@ -179,14 +179,6 @@ class OkBuckGradlePlugin implements Plugin<Project> {
         }
         defs.add("//${OKBUCK_DEFS}")
 
-        // generate .buckconfig.local
-        File dotBuckConfigLocal = project.file(".buckconfig.local")
-        PrintStream configPrinter = new PrintStream(dotBuckConfigLocal)
-        DotBuckConfigLocalGenerator.generate(okbuckExt,
-                groovyHome,
-                ProguardUtil.getProguardJarPath(project),
-                defs).print(configPrinter)
-        IOUtils.closeQuietly(configPrinter)
     }
 
     private static Set<Configuration> configurations(Set<Project> projects) {
