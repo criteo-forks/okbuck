@@ -1,6 +1,7 @@
 package com.uber.okbuck
 
 import com.uber.okbuck.core.dependency.DependencyCache
+import com.uber.okbuck.core.dependency.DirectDependency
 import com.uber.okbuck.core.dependency.ExternalDependency
 import com.uber.okbuck.core.model.base.ProjectType
 import com.uber.okbuck.core.model.base.TargetCache
@@ -53,7 +54,12 @@ class OkBuckGradlePlugin implements Plugin<Project> {
     public static final String RETROLAMBDA = "retrolambda"
     public static final String CONFIGURATION_EXTERNAL = "externalOkbuck"
     public static final String OKBUCK_DEFS = ".okbuck/defs/DEFS"
+
     public static final String WORKSPACE = "WORKSPACE"
+    public static final String BUILD = "BUILD"
+    public static final String INT_LIBS = "intlibs"
+    public static final String EXT_LIBS = "extlibs"
+    public static final String JAR = "jar"
 
     // TODO: configure that in the plugin
     public static final String INTERNAL_PROJECTS_PREFIX = "com.criteo"
@@ -151,7 +157,10 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                     RobolectricUtil.download(project)
                 }
                 // Generate Workspace
-                generateWorkspace()
+                generateWorkspace(project)
+
+                // Generate intlibs extlibs
+                generateIntAndExtLibs(project)
             }
 
             // Configure okbuck task
@@ -173,24 +182,58 @@ class OkBuckGradlePlugin implements Plugin<Project> {
         }
     }
 
-    private static String toBazelMavenJar(ExternalDependency dep) {
-        def name = [dep.group,
-                    dep.name,
-                    dep.version].collect { "${it}" }.join('_')
-        def artifact = [dep.group,
-                        dep.name,
-                        "jar",
-                        dep.version].collect { "${it}" }.join(':')
-        "maven_jar(name = ${name}, artifact = ${artifact})"
+    private generateIntAndExtLibs(Project project) {
+        generateLibs(project, depCache.internal, INT_LIBS)
+        generateLibs(project, depCache.external, EXT_LIBS)
     }
 
-    private void generateWorkspace() {
+    private static generateLibs(Project project,
+                                Set<DirectDependency> deps,
+                                String path) {
+        def dir = new File(project.projectDir, path)
+        dir.mkdirs()
+        def file = new File(dir, BUILD)
+        file.text = (deps.collectMany { toBazelJavaLibrary(it) } + [""]).join("\n")
+    }
+
+    private static List<String> toBazelJavaLibrary(DirectDependency dep) {
+        def res = ['java_library(',
+                   "  name = \"${dep.direct.name}\",",
+                   '  visibility = ["//visibility:public"],',
+                   '  exports = [']
+        res += dep.children.collect { "    \"${toBazelJavaLibraryExport(it)}\"," }
+        res += [   '  ],',
+                   ')',
+                   '']
+        res
+    }
+
+    private static String toBazelMavenJarName(ExternalDependency dep) {
+        [dep.group,
+         dep.name,
+         dep.version].collect { "${it}" }.join('_').replace(".", "_").replace("-", "_")
+    }
+
+    private static String toBazelJavaLibraryExport(ExternalDependency dep) {
+        "@${toBazelMavenJarName(dep)}//${JAR}"
+    }
+
+    private static String toBazelMavenJar(ExternalDependency dep) {
+        def name = toBazelMavenJarName(dep)
+        def artifact = [dep.group,
+                        dep.name,
+                        JAR,
+                        dep.version].collect { "${it}" }.join(':')
+        "maven_jar(name = \"${name}\", artifact = \"${artifact}\")"
+    }
+
+    private void generateWorkspace(Project project) {
         List<String> res = ['maven_server(',
                             '    name = "default",',
-                            '    url = "${INTERNAL_NEXUS}",',
+                            "    url = \"${INTERNAL_NEXUS}\",",
                             ')']
         res += depCache.getAllDependencies().collect { toBazelMavenJar(it) }
-        new File(this.WORKSPACE).text = (res + [""]).join("\n")
+        new File(project.projectDir, this.WORKSPACE).text = (res + [""]).join("\n")
     }
 
     private static void generate(Project project, OkBuckExtension okbuckExt, String groovyHome) {
