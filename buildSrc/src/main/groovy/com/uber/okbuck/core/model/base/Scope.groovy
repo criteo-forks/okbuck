@@ -29,6 +29,7 @@ class Scope {
     protected final Project project
     protected final Set<VersionlessDependency> external = [] as Set
     protected final Set<VersionlessDependency> firstLevel = [] as Set
+    protected final Set<ExternalDependency> firstLevelWhateverIsAlreadyCached = [] as Set
     protected final Set<ExternalDependency> missedExternalDependency = [] as Set
 
     Scope(Project project,
@@ -45,6 +46,12 @@ class Scope {
         this.depCache = depCache
 
         extractConfigurations(configurations)
+    }
+
+    Set<ExternalDependency> getFirstLevelDeps() {
+        // TODO all firstLevelDependencies are not in the cache
+        // check whether these should not be added at runtime
+        firstLevelWhateverIsAlreadyCached
     }
 
     Set<String> getExternalDeps() {
@@ -95,6 +102,8 @@ class Scope {
         // get all first level external dependencies
         validConfigurations.collect {
             it.resolvedConfiguration.firstLevelModuleDependencies.each { ResolvedDependency resolvedDependency ->
+                ExternalDependency extDep = ExternalDependency.fromResolvedDependency(resolvedDependency, depCache.internalProjectsPrefix)
+                firstLevelWhateverIsAlreadyCached.add(extDep)
                 if (!resolvedDependency.moduleArtifacts.empty) {
                     ResolvedArtifact artifact = resolvedDependency.moduleArtifacts[0]
                     VersionlessDependency dependency = new VersionlessDependency(artifact.moduleVersion.id, artifact.classifier)
@@ -154,7 +163,7 @@ class Scope {
                         "outside the project can cause hard to reproduce builds. Please move dependency: ${localDep} " +
                         "inside ${project.rootProject.projectDir}")
             }
-            external.add(ExternalDependency.fromLocal(localDep))
+            external.add(ExternalDependency.fromLocal(localDep, depCache.internalProjectsPrefix))
         }
     }
 

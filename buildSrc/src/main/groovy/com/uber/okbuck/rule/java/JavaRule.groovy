@@ -102,8 +102,13 @@ abstract class JavaRule extends BuckRule {
             printer.println("\t],")
         }
 
-        printer.println("\tsource = '${mSourceCompatibility}',")
-        printer.println("\ttarget = '${mTargetCompatibility}',")
+        if (mSourceCompatibility) {
+            printer.println("\tsource = '${mSourceCompatibility}',")
+        }
+
+        if (mTargetCompatibility) {
+            printer.println("\ttarget = '${mTargetCompatibility}',")
+        }
 
         if (!mOptions.empty) {
             printer.println("\textra_arguments = [")

@@ -12,10 +12,13 @@ class ExternalDependency extends VersionlessDependency {
     static final String LOCAL_DEP_VERSION = "1.0.0"
     static final String SOURCES_JAR = '-sources.jar'
 
+    final String internalProjectsPrefix
+
     final DefaultArtifactVersion version
     final File depFile
 
-    ExternalDependency(ModuleVersionIdentifier identifier, File depFile, String classifier) {
+    ExternalDependency(ModuleVersionIdentifier identifier, File depFile, String classifier,
+                       String internalProjectsPrefix) {
         super(identifier, classifier)
         if (identifier.version) {
             version = new DefaultArtifactVersion(identifier.version)
@@ -24,6 +27,7 @@ class ExternalDependency extends VersionlessDependency {
         }
 
         this.depFile = depFile
+        this.internalProjectsPrefix = internalProjectsPrefix
     }
 
     @Override
@@ -50,19 +54,24 @@ class ExternalDependency extends VersionlessDependency {
         return getCacheName(useFullDepName).replaceFirst(/\.(jar|aar)$/, SOURCES_JAR)
     }
 
-    static ExternalDependency fromLocal(File localDep) {
+    Boolean isInternal() {
+        internalProjectsPrefix ? group.startsWith(internalProjectsPrefix) : false
+    }
+
+
+    static ExternalDependency fromLocal(File localDep, String internalProjectsPrefix) {
         String baseName = FilenameUtils.getBaseName(localDep.name)
         ModuleVersionIdentifier identifier = getDepIdentifier(
                 baseName,
                 baseName,
                 LOCAL_DEP_VERSION)
-        return new ExternalDependency(identifier, localDep, null)
+        return new ExternalDependency(identifier, localDep, null, internalProjectsPrefix)
     }
 
-    static ExternalDependency fromResolvedDependency(ResolvedDependency dependency) {
+    static ExternalDependency fromResolvedDependency(ResolvedDependency dependency, String internalProjectsPrefix) {
         ModuleVersionIdentifier identifier = new DefaultModuleVersionIdentifier(dependency.moduleGroup,
                                                                                 dependency.moduleName,
                                                                                 dependency.moduleVersion)
-        return new ExternalDependency(identifier, null, null)
+        return new ExternalDependency(identifier, null, null, internalProjectsPrefix)
     }
 }

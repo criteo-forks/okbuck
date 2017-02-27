@@ -14,6 +14,7 @@ import com.uber.okbuck.core.util.ProjectUtil
 import com.uber.okbuck.core.util.RetrolambdaUtil
 import com.uber.okbuck.core.util.RobolectricUtil
 import com.uber.okbuck.core.util.TransformUtil
+import com.uber.okbuck.core.util.ProjectUtil.BuildSystem
 import com.uber.okbuck.extension.ExperimentalExtension
 import com.uber.okbuck.extension.IntellijExtension
 import com.uber.okbuck.extension.OkBuckExtension
@@ -22,6 +23,7 @@ import com.uber.okbuck.extension.TestExtension
 import com.uber.okbuck.extension.TransformExtension
 import com.uber.okbuck.extension.WrapperExtension
 import com.uber.okbuck.generator.BuckFileGenerator
+import com.criteo.tobazel.generator.BazelFileGenerator
 import com.uber.okbuck.generator.DotBuckConfigLocalGenerator
 import com.uber.okbuck.wrapper.BuckWrapperTask
 import org.apache.commons.io.IOUtils
@@ -68,7 +70,7 @@ class OkBuckGradlePlugin implements Plugin<Project> {
     // Project level globals
     public DependencyCache depCache
     public DependencyCache lintDepCache
-    public TargetCache targetCache
+    public Map <BuildSystem, TargetCache> targetCache
     public String retrolambdaCmd
 
     void apply(Project project) {
@@ -96,7 +98,8 @@ class OkBuckGradlePlugin implements Plugin<Project> {
         okBuck.dependsOn(setupOkbuck)
 
         // Create target cache
-        targetCache = new TargetCache()
+        targetCache = [(ProjectUtil.BuildSystem.BUCK): new TargetCache(),
+                       (ProjectUtil.BuildSystem.BAZEL): new com.criteo.tobazel.core.model.base.TargetCache()]
 
         project.afterEvaluate {
             // Create clean task
@@ -161,6 +164,12 @@ class OkBuckGradlePlugin implements Plugin<Project> {
 
                 // Generate intlibs extlibs
                 generateIntAndExtLibs(project)
+
+                // Generate BUILD
+                okbuckExt.buckProjects.each {
+                    Project p ->
+                        BazelFileGenerator.generate(p)
+                }
             }
 
             // Configure okbuck task
@@ -201,7 +210,7 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                    "  name = \"${dep.direct.name}\",",
                    '  visibility = ["//visibility:public"],',
                    '  exports = [']
-        res += dep.children.collect { "    \"${toBazelJavaLibraryExport(it)}\"," }
+        res += (dep.children + [dep.direct]).collect { "    \"${toBazelJavaLibraryExport(it)}\"," }
         res += [   '  ],',
                    ')',
                    '']

@@ -66,12 +66,16 @@ class DependencyCache {
         build(cleanup, depProjects)
     }
 
-    String get(VersionlessDependency dependency) {
+    ExternalDependency getExtDep(VersionlessDependency dependency) {
         ExternalDependency externalDependency = externalDeps.get(dependency)
         if (externalDependency == null) {
             throw new IllegalStateException("Could not find dependency path for ${dependency}")
         }
+        externalDependency
+    }
 
+    String get(VersionlessDependency dependency) {
+        ExternalDependency externalDependency = getExtDep(dependency)
         File cachedCopy = new File(cacheDir, externalDependency.getCacheName(useFullDepName))
         return FileUtil.getRelativePath(rootProject.projectDir, cachedCopy)
     }
@@ -92,10 +96,6 @@ class DependencyCache {
         }
     }
 
-    private isInternal(ExternalDependency dep) {
-        dep.group.startsWith(this.internalProjectsPrefix)
-    }
-
     private void build(boolean cleanup, Set<Project> depProjects) {
         Set<File> resolvedFiles = [] as Set
 
@@ -108,7 +108,7 @@ class DependencyCache {
 
         superConfiguration.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact artifact ->
             ExternalDependency dependency = new ExternalDependency(artifact.moduleVersion.id, artifact.file,
-                    artifact.classifier)
+                                                                   artifact.classifier, internalProjectsPrefix)
             if (!projectDeps.containsKey(dependency.withoutClassifier())) {
                 externalDeps.put(dependency, dependency)
             }
@@ -116,12 +116,12 @@ class DependencyCache {
         }
 
         superConfiguration.resolvedConfiguration.firstLevelModuleDependencies.each { ResolvedDependency dependency ->
-            ExternalDependency extDep = ExternalDependency.fromResolvedDependency(dependency)
+            ExternalDependency extDep = ExternalDependency.fromResolvedDependency(dependency, internalProjectsPrefix)
 
             if (externalDeps.containsKey(extDep.withoutClassifier())) {
-                Set<ExternalDependency> children = dependency.children.collect { ExternalDependency.fromResolvedDependency(it) }
+                Set<ExternalDependency> children = dependency.children.collect { ExternalDependency.fromResolvedDependency(it, internalProjectsPrefix) }
                 DirectDependency current = new DirectDependency(extDep, children)
-                if (isInternal(extDep)) {
+                if (extDep.isInternal()) {
                     this.internal.add(current)
                 }
                 else {
@@ -133,7 +133,7 @@ class DependencyCache {
         superConfiguration.files.findAll { File resolved ->
             !resolvedFiles.contains(resolved)
         }.each { File localDep ->
-            ExternalDependency localDependency = ExternalDependency.fromLocal(localDep)
+            ExternalDependency localDependency = ExternalDependency.fromLocal(localDep, internalProjectsPrefix)
             externalDeps.put(localDependency, localDependency)
         }
 

@@ -17,6 +17,10 @@ import java.util.Map;
 
 public final class ProjectUtil {
 
+    public static enum BuildSystem {
+        BUCK, BAZEL
+    }
+
     private ProjectUtil() {}
 
     public static ProjectType getType(Project project) {
@@ -36,8 +40,12 @@ public final class ProjectUtil {
         return getPlugin(project).depCache;
     }
 
+    public static Map<String, Target> getTargets(Project project, BuildSystem bs) {
+        return getTargetCache(project, bs).getTargets(project);
+    }
+
     public static Map<String, Target> getTargets(Project project) {
-        return getTargetCache(project).getTargets(project);
+        return getTargetCache(project, BuildSystem.BUCK).getTargets(project);
     }
 
     public static Target getTargetForOutput(Project targetProject, File output) {
@@ -48,7 +56,11 @@ public final class ProjectUtil {
         return project.getRootProject().getPlugins().getPlugin(OkBuckGradlePlugin.class);
     }
 
+    private static TargetCache getTargetCache(Project project, BuildSystem bs) {
+        return getPlugin(project).targetCache.get(bs);
+    }
+
     private static TargetCache getTargetCache(Project project) {
-        return getPlugin(project).targetCache;
+        return getTargetCache(project, BuildSystem.BUCK);
     }
 }

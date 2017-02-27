@@ -15,6 +15,7 @@ public enum RuleType {
     JAVA_BINARY,
     JAVA_LIBRARY,
     JAVA_TEST,
+    JUNIT_TESTS,
     PREBUILT_NATIVE_LIBRARY,
     ROBOLECTRIC_TEST
 }
