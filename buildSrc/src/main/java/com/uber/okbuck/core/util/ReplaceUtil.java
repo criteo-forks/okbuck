@@ -17,9 +17,8 @@ import java.util.Map;
 final class ReplaceUtil {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    static void copyResourceToProject(String resource, File destination, Map<String, String> templates) {
+    static void copyResourceToProject(InputStream inputStream, File destination, Map<String, String> templates) {
         try {
-            InputStream inputStream = FileUtil.class.getResourceAsStream(resource);
             destination.getParentFile().mkdirs();
             InputStreamReader reader = new InputStreamReader(inputStream);
             TemplateReader replacingReader = new TemplateReader(reader, new TemplateMapResolver(templates));
@@ -31,6 +30,11 @@ final class ReplaceUtil {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    static void copyResourceToProject(String resource, File destination, Map<String, String> templates) {
+        copyResourceToProject(FileUtil.class.getResourceAsStream(resource), destination, templates);
     }
 
     private interface TemplateResolver {

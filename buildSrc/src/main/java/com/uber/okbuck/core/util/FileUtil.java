@@ -33,9 +33,8 @@ public final class FileUtil {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void copyResourceToProject(String resource, File destination) {
+    public static void copyResourceToProject(InputStream inputStream, File destination) {
         try {
-            InputStream inputStream = FileUtil.class.getResourceAsStream(resource);
             destination.getParentFile().mkdirs();
             OutputStream outputStream = new FileOutputStream(destination);
             IOUtils.copy(inputStream, outputStream);
@@ -46,8 +45,18 @@ public final class FileUtil {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void copyResourceToProject(String resource, File destination) {
+        copyResourceToProject(FileUtil.class.getResourceAsStream(resource), destination);
+    }
+
+
     public static void copyResourceToProject(String resource, File destination, Map<String, String> templates) {
         ReplaceUtil.copyResourceToProject(resource, destination, templates);
+    }
+
+    public static void copyResourceToProject(InputStream inputStream, File destination, Map<String, String> templates) {
+        ReplaceUtil.copyResourceToProject(inputStream, destination, templates);
     }
 
     public static Set<String> getIfAvailable(final Project project, Collection<File> files) {
