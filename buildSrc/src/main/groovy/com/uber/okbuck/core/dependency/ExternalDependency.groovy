@@ -76,7 +76,7 @@ class ExternalDependency extends VersionlessDependency {
     }
 
     String toBazelName() {
-        [group, name].join("#")
+        [group, name].join("-")
     }
 
     String toBazelPath() {
