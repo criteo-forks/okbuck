@@ -4,6 +4,7 @@ import com.criteo.tobazel.core.model.java.JavaLibTarget
 import com.criteo.tobazel.composer.java.JavaLibraryRuleComposer
 import com.criteo.tobazel.composer.java.JavaTestRuleComposer
 import com.criteo.tobazel.composer.java.ImportJunitTestsRuleComposer
+import com.criteo.tobazel.composer.misc.ImportAddstattoolRuleComposer
 import com.criteo.tobazel.config.BazelFile
 
 import com.uber.okbuck.OkBuckGradlePlugin
@@ -78,6 +79,9 @@ final class BazelFileGenerator {
         if (target.test.sources) {
             rules.add(ImportJunitTestsRuleComposer.compose(target))
             rules.add(JavaTestRuleComposer.compose(target))
+        }
+        if (target.addstattool) {
+            rules.add(ImportAddstattoolRuleComposer.compose(target))
         }
         return rules
     }

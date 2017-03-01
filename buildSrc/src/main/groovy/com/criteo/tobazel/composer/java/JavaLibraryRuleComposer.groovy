@@ -1,6 +1,7 @@
 package com.criteo.tobazel.composer.java
 
 import com.criteo.tobazel.composer.jvm.JvmRuleComposer
+import com.criteo.tobazel.core.util.AddstattoolUtil
 import com.uber.okbuck.core.model.base.RuleType
 import com.uber.okbuck.core.model.java.JavaLibTarget
 import com.uber.okbuck.core.util.RetrolambdaUtil
@@ -28,6 +29,10 @@ final class JavaLibraryRuleComposer extends JvmRuleComposer {
 
         if (target.retrolambda) {
             providedDeps.add(RetrolambdaUtil.getRtStubJarRule())
+        }
+
+        if (target.addstattool) {
+            deps.add(AddstattoolUtil.getRule())
         }
 
         List<String> testTargets = []

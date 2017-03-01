@@ -24,6 +24,7 @@ import com.uber.okbuck.extension.TransformExtension
 import com.uber.okbuck.extension.WrapperExtension
 import com.uber.okbuck.generator.BuckFileGenerator
 import com.criteo.tobazel.generator.BazelFileGenerator
+import com.criteo.tobazel.core.util.AddstattoolUtil
 import com.criteo.tobazel.core.util.JunitTestsUtil
 import com.uber.okbuck.generator.DotBuckConfigLocalGenerator
 import com.uber.okbuck.wrapper.BuckWrapperTask
@@ -282,6 +283,7 @@ class OkBuckGradlePlugin implements Plugin<Project> {
 
     private void generateBzlRules(Project project) {
         JunitTestsUtil.generate(project)
+        AddstattoolUtil.generate(project)
     }
 
     private static void generate(Project project, OkBuckExtension okbuckExt, String groovyHome) {
