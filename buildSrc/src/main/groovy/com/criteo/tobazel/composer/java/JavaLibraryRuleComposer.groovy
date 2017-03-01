@@ -2,10 +2,11 @@ package com.criteo.tobazel.composer.java
 
 import com.criteo.tobazel.composer.jvm.JvmRuleComposer
 import com.criteo.tobazel.core.util.AddstattoolUtil
+import com.criteo.tobazel.rule.java.JavaLibraryRule
+
 import com.uber.okbuck.core.model.base.RuleType
 import com.uber.okbuck.core.model.java.JavaLibTarget
 import com.uber.okbuck.core.util.RetrolambdaUtil
-import com.uber.okbuck.rule.java.JavaLibraryRule
 import com.uber.okbuck.core.dependency.ExternalDependency
 
 final class JavaLibraryRuleComposer extends JvmRuleComposer {

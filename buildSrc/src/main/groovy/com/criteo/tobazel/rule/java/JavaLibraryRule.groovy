@@ -1,11 +1,10 @@
 package com.criteo.tobazel.rule.java
 
 import com.uber.okbuck.core.model.base.RuleType
-import com.criteo.tobazel.rule.java.JavaRule
 
-final class JavaTestRule extends JavaRule {
+final class JavaLibraryRule extends JavaRule {
 
-    JavaTestRule(
+    JavaLibraryRule(
             String name,
             List<String> visibility,
             List<String> deps,
@@ -18,11 +17,11 @@ final class JavaTestRule extends JavaRule {
             String targetCompatibility,
             List<String> postprocessClassesCommands,
             List<String> options,
-            List<String> testRunnerJvmArgs,
+            List<String> testTargets,
             Set<String> extraOpts) {
 
         super(
-                RuleType.JUNIT_TESTS,
+                RuleType.JAVA_LIBRARY,
                 name,
                 visibility,
                 deps,
@@ -35,8 +34,8 @@ final class JavaTestRule extends JavaRule {
                 targetCompatibility,
                 postprocessClassesCommands,
                 options,
-                testRunnerJvmArgs,
                 null,
+                testTargets,
                 null,
                 extraOpts)
     }

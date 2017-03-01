@@ -8,7 +8,6 @@ abstract class JavaRule extends BuckRule {
     private final Set<String> mSrcSet
     private final Set<String> mAnnotationProcessors
     private final Set<String> mAnnotationProcessorDeps
-    private final String mResourcesDir
     private final String mSourceCompatibility
     private final String mTargetCompatibility
     private final List<String> mPostprocessClassesCommands
@@ -17,6 +16,8 @@ abstract class JavaRule extends BuckRule {
     private final Set<String> mProvidedDeps
     private final List<String> mTestTargets
     private final List<String> mLabels
+
+    protected final String mResourcesDir
 
     JavaRule(
             RuleType ruleType,
@@ -52,6 +53,14 @@ abstract class JavaRule extends BuckRule {
         mLabels = labels
     }
 
+    protected void printResourcesDir(PrintStream printer) {
+        printer.println("\tresources = glob([")
+        printer.println("\t\t'${mResourcesDir}/**',")
+        printer.println("\t]),")
+
+        printer.println("\tresources_root = '${mResourcesDir}',")
+    }
+
     @Override
     protected final void printContent(PrintStream printer) {
         if (!mSrcSet.empty) {
@@ -71,11 +80,7 @@ abstract class JavaRule extends BuckRule {
         }
 
         if (mResourcesDir) {
-            printer.println("\tresources = glob([")
-            printer.println("\t\t'${mResourcesDir}/**',")
-            printer.println("\t]),")
-
-            printer.println("\tresources_root = '${mResourcesDir}',")
+            printResourcesDir(printer)
         }
 
         if (!mAnnotationProcessors.empty) {
