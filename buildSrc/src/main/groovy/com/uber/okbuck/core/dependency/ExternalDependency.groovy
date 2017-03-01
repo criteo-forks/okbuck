@@ -76,9 +76,7 @@ class ExternalDependency extends VersionlessDependency {
     }
 
     String toBazelName() {
-        def start = [group, name]
-        def res = classifier ? start + classifier : start
-        res.join("#")
+        [group, name].join("#")
     }
 
     String toBazelPath() {

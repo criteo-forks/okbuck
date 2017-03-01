@@ -257,12 +257,17 @@ class OkBuckGradlePlugin implements Plugin<Project> {
         "@${toBazelMavenJarName(dep)}//${JAR}"
     }
 
-    private static String toBazelMavenJar(ExternalDependency dep) {
+    private String toBazelMavenJar(ExternalDependency dep) {
         def name = toBazelMavenJarName(dep)
-        def artifact = [dep.group,
-                        dep.name,
-                        JAR,
-                        dep.version].collect { "${it}" }.join(':')
+        def attributes = [dep.group,
+                          dep.name,
+                          JAR]
+        def classifier = depCache.getClassifier(dep)
+        if (classifier) {
+            attributes.add(classifier)
+        }
+        attributes.add(dep.version)
+        def artifact = attributes.collect { "${it}" }.join(':')
         "maven_jar(name = \"${name}\", artifact = \"${artifact}\")"
     }
 

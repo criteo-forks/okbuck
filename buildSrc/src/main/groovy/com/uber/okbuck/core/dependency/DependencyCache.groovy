@@ -33,6 +33,7 @@ class DependencyCache {
 
     private final Map<VersionlessDependency, ExternalDependency> externalDeps = [:]
     private final Map<VersionlessDependency, ProjectDependency> projectDeps = [:]
+    private final Map<VersionlessDependency, String> depsClassifiers = [:]
     private final Set<ResolvedDependency> resolvedDependencies = [] as Set
 
     DependencyCache(
@@ -63,6 +64,10 @@ class DependencyCache {
         this.extractLintJars = extractLintJars
         this.internalProjectsPrefix = internalProjectsPrefix
         build(cleanup, depProjects)
+    }
+
+    String getClassifier(ExternalDependency dep) {
+        depsClassifiers.get(dep.withoutClassifier())
     }
 
     ExternalDependency getExtDep(VersionlessDependency dependency) {
@@ -110,6 +115,10 @@ class DependencyCache {
                                                                    artifact.classifier, internalProjectsPrefix)
             if (!projectDeps.containsKey(dependency.withoutClassifier())) {
                 externalDeps.put(dependency, dependency)
+                def key = dependency.withoutClassifier()
+                if (!depsClassifiers.containsKey(key)) {
+                    depsClassifiers.put(key, artifact.classifier)
+                }
             }
             resolvedFiles.add(artifact.file)
         }
