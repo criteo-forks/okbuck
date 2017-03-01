@@ -74,4 +74,15 @@ class ExternalDependency extends VersionlessDependency {
                                                                                 dependency.moduleVersion)
         return new ExternalDependency(identifier, null, null, internalProjectsPrefix)
     }
+
+    String toBazelName() {
+        def start = [group, name]
+        def res = classifier ? start + classifier : start
+        res.join("#")
+    }
+
+    String toBazelPath() {
+        def preamble = isInternal() ? "intlibs" : "extlibs"
+        "//${preamble}:${toBazelName()}"
+    }
 }

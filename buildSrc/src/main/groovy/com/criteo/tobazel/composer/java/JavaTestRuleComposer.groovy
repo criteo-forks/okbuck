@@ -15,7 +15,7 @@ final class JavaTestRuleComposer extends JvmRuleComposer {
     static JavaTestRule compose(JavaLibTarget target) {
         List<String> deps = []
         deps.add(":${src(target)}")
-        deps.addAll(external(target.main.firstLevelDeps.collect { toBazelDep(it) } as Set))
+        deps.addAll(target.main.firstLevelDeps.collect { it.toBazelPath() } as Set)
         deps.addAll(targets(target.test.targetDeps))
 
         Set<String> aptDeps = [] as Set

@@ -14,7 +14,7 @@ final class JavaLibraryRuleComposer extends JvmRuleComposer {
     }
     static JavaLibraryRule compose(JavaLibTarget target) {
         List<String> deps = []
-        deps.addAll(external(target.main.firstLevelDeps.collect { toBazelDep(it) } as Set))
+        deps.addAll(target.main.firstLevelDeps.collect { it.toBazelPath() } as Set)
         deps.addAll(targets(target.main.targetDeps))
 
         Set<String> aptDeps = [] as Set

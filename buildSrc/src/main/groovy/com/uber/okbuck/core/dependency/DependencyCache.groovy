@@ -33,8 +33,7 @@ class DependencyCache {
 
     private final Map<VersionlessDependency, ExternalDependency> externalDeps = [:]
     private final Map<VersionlessDependency, ProjectDependency> projectDeps = [:]
-    private final Set<DirectDependency> internal = [] as Set
-    private final Set<DirectDependency> external = [] as Set
+    private final Set<ResolvedDependency> resolvedDependencies = [] as Set
 
     DependencyCache(
             String name,
@@ -119,14 +118,7 @@ class DependencyCache {
             ExternalDependency extDep = ExternalDependency.fromResolvedDependency(dependency, internalProjectsPrefix)
 
             if (externalDeps.containsKey(extDep.withoutClassifier())) {
-                Set<ExternalDependency> children = dependency.children.collect { ExternalDependency.fromResolvedDependency(it, internalProjectsPrefix) }
-                DirectDependency current = new DirectDependency(extDep, children)
-                if (extDep.isInternal()) {
-                    this.internal.add(current)
-                }
-                else {
-                    this.external.add(current)
-                }
+                resolvedDependencies.add(dependency)
             }
         }
 
@@ -270,10 +262,17 @@ class DependencyCache {
         return processors
     }
 
-    Set<ExternalDependency> getAllDependencies() {
-        Set<ExternalDependency> dependencies = (internal + external).inject([] as Set) {
+    List<ExternalDependency> getAllDependencies() {
+        getAllDependencies(resolvedDependencies)
+          .collect { ExternalDependency.fromResolvedDependency(it, internalProjectsPrefix) }
+          .toSet()
+          .sort { it.toString() }
+    }
+
+    Set<ResolvedDependency> getAllDependencies(Set<ResolvedDependency> resolvedDeps) {
+        resolvedDeps.inject([] as Set) {
             accum, it ->
-                accum + it.direct + it.children
+                accum + it + getAllDependencies(it.children)
         }
     }
 }

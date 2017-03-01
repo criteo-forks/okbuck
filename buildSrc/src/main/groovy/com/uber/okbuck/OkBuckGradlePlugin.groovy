@@ -1,7 +1,7 @@
 package com.uber.okbuck
 
 import com.uber.okbuck.core.dependency.DependencyCache
-import com.uber.okbuck.core.dependency.DirectDependency
+import org.gradle.api.artifacts.ResolvedDependency
 import com.uber.okbuck.core.dependency.ExternalDependency
 import com.uber.okbuck.core.model.base.ProjectType
 import com.uber.okbuck.core.model.base.TargetCache
@@ -196,29 +196,55 @@ class OkBuckGradlePlugin implements Plugin<Project> {
     }
 
     private generateIntAndExtLibs(Project project) {
-        generateLibs(project, depCache.internal, INT_LIBS)
-        generateLibs(project, depCache.external, EXT_LIBS)
+        def res = generateLibs(project, depCache.resolvedDependencies)
+        def externals = res[0]
+        def internals = res[1]
+        writeLibs(project, externals, EXT_LIBS)
+        writeLibs(project, internals, INT_LIBS)
     }
 
-    private static generateLibs(Project project,
-                                Set<DirectDependency> deps,
-                                String path) {
+    private void writeLibs(Project project, List<String> content, String path) {
         def dir = new File(project.projectDir, path)
         dir.mkdirs()
         def file = new File(dir, BUILD)
-        file.text = (deps.collectMany { toBazelJavaLibrary(it) } + [""]).join("\n")
+        file.text = (content+ [""]).join("\n")
     }
 
-    private static List<String> toBazelJavaLibrary(DirectDependency dep) {
-        def res = ['java_library(',
-                   "  name = \"${dep.direct.name}\",",
-                   '  visibility = ["//visibility:public"],',
-                   '  exports = [']
-        res += (dep.children + [dep.direct]).collect { "    \"${toBazelJavaLibraryExport(it)}\"," }
-        res += [   '  ],',
-                   ')',
-                   '']
-        res
+    private static Set<ExternalDependency> generateLibs(Project project,
+                                                        Set<ResolvedDependency> deps) {
+        Set<ExternalDependency> done = [] as Set
+        Stack todo = [] as Stack
+        deps.each { todo.push(it) }
+        def internal = []
+        def external = []
+        def cast = { it -> ExternalDependency.fromResolvedDependency(it, INTERNAL_PROJECTS_PREFIX) }
+        while (!todo.isEmpty()) {
+            def nextElement = todo.pop()
+            def nextExtDep = cast(nextElement)
+            if (!done.contains(nextExtDep)) {
+                def remainingChildren = nextElement.children.findAll { !done.contains(cast(it)) }
+                if (remainingChildren.isEmpty()) {
+                    def res = ['java_library(',
+                               "  name = \"${nextExtDep.toBazelName()}\",",
+                               '  visibility = ["//visibility:public"],',
+                               '  exports = [']
+                    def jarExport = toBazelJavaLibraryExport(nextExtDep)
+                    res += [ "    \"${jarExport}\"," ]
+                    res += nextElement.children.collect { "    \"${cast(it).toBazelPath()}\"," }
+                    res += [   '  ],',
+                               ')',
+                               '']
+                    def list = nextExtDep.isInternal() ? internal : external
+                    list.addAll(res)
+                    done.add(nextExtDep)
+                }
+                else {
+                    todo.push(nextElement)
+                    remainingChildren.each { todo.push(it) }
+                }
+            }
+        }
+        new Tuple(external, internal)
     }
 
     private static String toBazelMavenJarName(ExternalDependency dep) {
