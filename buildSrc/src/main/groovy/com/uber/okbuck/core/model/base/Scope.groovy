@@ -29,7 +29,7 @@ class Scope {
     protected final Project project
     protected final Set<VersionlessDependency> external = [] as Set
     protected final Set<VersionlessDependency> firstLevel = [] as Set
-    protected final Set<ExternalDependency> firstLevelWhateverIsAlreadyCached = [] as Set
+    protected final Set<ExternalDependency> firstLevelDependencies = [] as Set
     protected final Set<ExternalDependency> missedExternalDependency = [] as Set
 
     Scope(Project project,
@@ -51,7 +51,7 @@ class Scope {
     Set<ExternalDependency> getFirstLevelDeps() {
         // TODO all firstLevelDependencies are not in the cache
         // check whether these should not be added at runtime
-        firstLevelWhateverIsAlreadyCached
+        firstLevelDependencies
     }
 
     Set<String> getExternalDeps() {
@@ -103,12 +103,12 @@ class Scope {
         validConfigurations.collect {
             it.resolvedConfiguration.firstLevelModuleDependencies.each { ResolvedDependency resolvedDependency ->
                 ExternalDependency extDep = ExternalDependency.fromResolvedDependency(resolvedDependency, depCache.internalProjectsPrefix)
-                firstLevelWhateverIsAlreadyCached.add(extDep)
                 if (!resolvedDependency.moduleArtifacts.empty) {
                     ResolvedArtifact artifact = resolvedDependency.moduleArtifacts[0]
                     VersionlessDependency dependency = new VersionlessDependency(artifact.moduleVersion.id, artifact.classifier)
 
                     if (!depCache.getProject(dependency)) {
+                        firstLevelDependencies.add(extDep)
                         firstLevel.add(dependency)
                     }
                 }
