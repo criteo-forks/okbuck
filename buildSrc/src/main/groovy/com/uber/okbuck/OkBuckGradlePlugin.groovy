@@ -26,6 +26,7 @@ import com.uber.okbuck.generator.BuckFileGenerator
 import com.criteo.tobazel.generator.BazelFileGenerator
 import com.criteo.tobazel.core.util.AddstattoolUtil
 import com.criteo.tobazel.core.util.JunitTestsUtil
+import com.criteo.tobazel.core.util.AntlrUtil
 import com.uber.okbuck.generator.DotBuckConfigLocalGenerator
 import com.uber.okbuck.wrapper.BuckWrapperTask
 import org.apache.commons.io.IOUtils
@@ -278,12 +279,15 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                             "    url = \"${INTERNAL_NEXUS}\",",
                             ')']
         res += depCache.getAllDependencies().collect { toBazelMavenJar(it) }
+        res += AntlrUtil.getWorkspaceLines()
         new File(project.projectDir, this.WORKSPACE).text = (res + [""]).join("\n")
     }
 
     private void generateBzlRules(Project project) {
         JunitTestsUtil.generate(project)
         AddstattoolUtil.generate(project)
+        // this one is not only a .bzl file
+        AntlrUtil.generate(project)
     }
 
     private static void generate(Project project, OkBuckExtension okbuckExt, String groovyHome) {

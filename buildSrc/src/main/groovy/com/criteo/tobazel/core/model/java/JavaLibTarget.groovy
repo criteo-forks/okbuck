@@ -11,4 +11,8 @@ class JavaLibTarget extends com.uber.okbuck.core.model.java.JavaLibTarget {
         // project.plugins.hasPlugin does not work
         project.plugins.any { it.toString().startsWith("AdStatToolPlugin") }
     }
+
+    boolean getAntlr() {
+        project.plugins.hasPlugin("antlr")
+    }
 }

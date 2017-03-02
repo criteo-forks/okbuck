@@ -2,6 +2,7 @@ package com.criteo.tobazel.composer.java
 
 import com.criteo.tobazel.composer.jvm.JvmRuleComposer
 import com.criteo.tobazel.core.util.AddstattoolUtil
+import com.criteo.tobazel.core.util.AntlrUtil
 import com.criteo.tobazel.rule.java.JavaLibraryRule
 
 import com.uber.okbuck.core.model.base.RuleType
@@ -34,6 +35,10 @@ final class JavaLibraryRuleComposer extends JvmRuleComposer {
 
         if (target.addstattool) {
             deps.add(AddstattoolUtil.getRule())
+        }
+
+        if (target.antlr) {
+            deps = AntlrUtil.modifyDeps(deps)
         }
 
         List<String> testTargets = []

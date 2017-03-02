@@ -4,6 +4,7 @@ import com.criteo.tobazel.core.model.java.JavaLibTarget
 import com.criteo.tobazel.composer.java.JavaLibraryRuleComposer
 import com.criteo.tobazel.composer.java.JavaTestRuleComposer
 import com.criteo.tobazel.composer.java.ImportJunitTestsRuleComposer
+import com.criteo.tobazel.composer.java.AntlrRuleComposer
 import com.criteo.tobazel.composer.misc.ImportAddstattoolRuleComposer
 import com.criteo.tobazel.config.BazelFile
 
@@ -74,14 +75,20 @@ final class BazelFileGenerator {
 
     private static List<Rule> createRules(JavaLibTarget target) {
         List<Rule> rules = []
+
+        if (target.addstattool) {
+            rules.add(ImportAddstattoolRuleComposer.compose(target))
+        }
+
+        if (target.antlr) {
+            rules.add(AntlrRuleComposer.compose(target))
+        }
+
         rules.add(JavaLibraryRuleComposer.compose(target))
 
         if (target.test.sources) {
             rules.add(ImportJunitTestsRuleComposer.compose(target))
             rules.add(JavaTestRuleComposer.compose(target))
-        }
-        if (target.addstattool) {
-            rules.add(ImportAddstattoolRuleComposer.compose(target))
         }
         return rules
     }
