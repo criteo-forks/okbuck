@@ -142,7 +142,7 @@ class Scope {
                 Target target = ProjectUtil.getTargetForOutput(targetProject, artifactFile)
                 if (target == null) {
                     throw new IllegalStateException("No such artifact: ${artifactFile} for ${targetProject} with " +
-                            "artifact id: ${dependency}")
+                                                    "artifact id: ${dependency}")
                 } else if (target.project != project) {
                     targetDeps.add(target)
                 }

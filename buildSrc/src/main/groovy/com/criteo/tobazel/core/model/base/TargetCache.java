@@ -5,6 +5,7 @@ import com.uber.okbuck.core.model.base.Target;
 import com.uber.okbuck.core.model.groovy.GroovyLibTarget;
 import com.uber.okbuck.core.model.java.JavaAppTarget;
 import com.criteo.tobazel.core.model.java.JavaLibTarget;
+import com.uber.okbuck.core.model.scala.ScalaLibTarget;
 import com.uber.okbuck.core.model.jvm.JvmTarget;
 import com.uber.okbuck.core.util.ProjectUtil;
 
@@ -32,6 +33,10 @@ public class TargetCache extends com.uber.okbuck.core.model.base.TargetCache {
                 case JAVA_LIB:
                     projectTargets = Collections.singletonMap(JvmTarget.MAIN,
                             (Target) new JavaLibTarget(project, JvmTarget.MAIN));
+                    break;
+                case SCALA_LIB:
+                    projectTargets = Collections.singletonMap(JvmTarget.MAIN,
+                            (Target) new ScalaLibTarget(project, JvmTarget.MAIN));
                     break;
                 default:
                     projectTargets = Collections.emptyMap();

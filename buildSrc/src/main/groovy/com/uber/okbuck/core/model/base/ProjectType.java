@@ -6,5 +6,6 @@ public enum ProjectType {
     GROOVY_LIB,
     JAVA_APP,
     JAVA_LIB,
+    SCALA_LIB,
     UNKNOWN
 }

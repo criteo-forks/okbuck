@@ -5,7 +5,7 @@ import com.uber.okbuck.rule.base.BuckRule
 
 abstract class JavaRule extends BuckRule {
 
-    private final Set<String> mSrcSet
+    protected final Set<String> mSrcSet
     private final Set<String> mAnnotationProcessors
     private final Set<String> mAnnotationProcessorDeps
     private final String mSourceCompatibility
@@ -61,14 +61,18 @@ abstract class JavaRule extends BuckRule {
         printer.println("\tresources_root = '${mResourcesDir}',")
     }
 
+    protected void printSources(PrintStream printer) {
+        printer.println("\tsrcs = glob([")
+        for (String src : mSrcSet) {
+            printer.println("\t\t'${src}/**/*.java',")
+        }
+        printer.println("\t]),")
+    }
+
     @Override
     protected final void printContent(PrintStream printer) {
         if (!mSrcSet.empty) {
-            printer.println("\tsrcs = glob([")
-            for (String src : mSrcSet) {
-                printer.println("\t\t'${src}/**/*.java',")
-            }
-            printer.println("\t]),")
+            printSources(printer)
         }
 
         if (mTestTargets) {

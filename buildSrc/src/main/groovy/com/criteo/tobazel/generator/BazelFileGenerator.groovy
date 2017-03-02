@@ -2,8 +2,10 @@ package com.criteo.tobazel.generator
 
 import com.criteo.tobazel.core.model.java.JavaLibTarget
 import com.criteo.tobazel.composer.java.JavaLibraryRuleComposer
+import com.criteo.tobazel.composer.scala.ScalaLibraryRuleComposer
 import com.criteo.tobazel.composer.java.JavaTestRuleComposer
 import com.criteo.tobazel.composer.java.ImportJunitTestsRuleComposer
+import com.criteo.tobazel.composer.scala.ImportScalaRulesRuleComposer
 import com.criteo.tobazel.composer.java.AntlrRuleComposer
 import com.criteo.tobazel.composer.misc.ImportAddstattoolRuleComposer
 import com.criteo.tobazel.config.BazelFile
@@ -17,6 +19,7 @@ import com.uber.okbuck.core.model.base.ProjectType
 import com.uber.okbuck.core.model.base.Target
 import com.uber.okbuck.core.model.groovy.GroovyLibTarget
 import com.uber.okbuck.core.model.java.JavaAppTarget
+import com.uber.okbuck.core.model.scala.ScalaLibTarget
 import com.uber.okbuck.core.util.ProjectUtil
 import com.uber.okbuck.extension.OkBuckExtension
 import com.uber.okbuck.extension.TestExtension
@@ -51,6 +54,9 @@ final class BazelFileGenerator {
         ProjectType projectType = ProjectUtil.getType(project)
         ProjectUtil.getTargets(project, ProjectUtil.BuildSystem.BAZEL).each { String name, Target target ->
             switch (projectType) {
+                case ProjectType.SCALA_LIB:
+                    rules.addAll(createRules((ScalaLibTarget) target))
+                    break
                 case ProjectType.JAVA_LIB:
                     rules.addAll(createRules((JavaLibTarget) target))
                     break
@@ -69,6 +75,19 @@ final class BazelFileGenerator {
         rules = rules.unique { rule ->
             rule.name
         }
+
+        return rules
+    }
+
+    private static List<Rule> createRules(ScalaLibTarget target) {
+        List<Rule> rules = []
+        rules.add(ImportScalaRulesRuleComposer.compose(target))
+        rules.add(ScalaLibraryRuleComposer.compose(target))
+
+        /*if (target.test.sources) {
+            rules.add(ImportJunitTestsRuleComposer.compose(target))
+            rules.add(ScalaTestRuleComposer.compose(target))
+            }*/
 
         return rules
     }

@@ -10,6 +10,7 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.GroovyPlugin;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.scala.ScalaPlugin;
 import org.gradle.api.plugins.PluginContainer;
 
 import java.io.File;
@@ -25,7 +26,9 @@ public final class ProjectUtil {
 
     public static ProjectType getType(Project project) {
         PluginContainer plugins = project.getPlugins();
-        if (plugins.hasPlugin(GroovyPlugin.class)) {
+        if (plugins.hasPlugin(ScalaPlugin.class)) {
+            return ProjectType.SCALA_LIB;
+        } else if (plugins.hasPlugin(GroovyPlugin.class)) {
             return ProjectType.GROOVY_LIB;
         } else if (plugins.hasPlugin(ApplicationPlugin.class)) {
             return ProjectType.JAVA_APP;

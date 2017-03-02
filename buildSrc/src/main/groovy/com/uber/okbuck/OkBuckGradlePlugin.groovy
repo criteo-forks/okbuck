@@ -27,6 +27,7 @@ import com.criteo.tobazel.generator.BazelFileGenerator
 import com.criteo.tobazel.core.util.AddstattoolUtil
 import com.criteo.tobazel.core.util.JunitTestsUtil
 import com.criteo.tobazel.core.util.AntlrUtil
+import com.criteo.tobazel.core.util.ScalaUtil
 import com.uber.okbuck.generator.DotBuckConfigLocalGenerator
 import com.uber.okbuck.wrapper.BuckWrapperTask
 import org.apache.commons.io.IOUtils
@@ -280,6 +281,7 @@ class OkBuckGradlePlugin implements Plugin<Project> {
                             ')']
         res += depCache.getAllDependencies().collect { toBazelMavenJar(it) }
         res += AntlrUtil.getWorkspaceLines()
+        res += ScalaUtil.getWorkspaceLines()
         new File(project.projectDir, this.WORKSPACE).text = (res + [""]).join("\n")
     }
 

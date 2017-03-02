@@ -2,6 +2,7 @@ package com.uber.okbuck.composer.base;
 
 import com.uber.okbuck.core.model.base.Target;
 import com.uber.okbuck.core.model.java.JavaLibTarget;
+import com.uber.okbuck.core.model.scala.ScalaLibTarget;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -42,7 +43,7 @@ public abstract class BuckRuleComposer {
 
     public static Set<String> targetsApt(final Set<Target> deps) {
         return deps.parallelStream()
-                .filter(target -> target.getClass().equals(JavaLibTarget.class))
+                .filter(target -> target.getClass().equals(JavaLibTarget.class) || target.getClass().equals(ScalaLibTarget.class))
                 .map(BuckRuleComposer::targets)
                 .collect(Collectors.toSet());
     }
