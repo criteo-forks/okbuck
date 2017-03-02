@@ -25,8 +25,7 @@ final class JavaLibraryRuleComposer extends JvmRuleComposer {
         aptDeps.addAll(targetsApt(target.apt.targetDeps))
 
         Set<String> providedDeps = []
-        providedDeps.addAll(external(target.provided.externalDeps))
-        providedDeps.addAll(targets(target.provided.targetDeps))
+        providedDeps.addAll(target.provided.firstLevelDeps.collect { it.toBazelPath() } as Set)
         providedDeps.removeAll(deps)
 
         if (target.retrolambda) {
@@ -45,7 +44,10 @@ final class JavaLibraryRuleComposer extends JvmRuleComposer {
         if (target.test.sources) {
             testTargets.add(":${test(target)}")
         }
-
+        // https://github.com/bazelbuild/bazel/issues/1402 provided_deps is tricky for now
+        // TODO: create a library with providedDeps dependencies only
+        //       and link the java_library with nolink=1
+        deps = deps + providedDeps
         new JavaLibraryRule(
                 src(target),
                 ["//visibility:public"],

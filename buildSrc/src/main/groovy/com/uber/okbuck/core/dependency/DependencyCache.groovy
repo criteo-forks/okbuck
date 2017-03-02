@@ -272,16 +272,6 @@ class DependencyCache {
     }
 
     List<ExternalDependency> getAllDependencies() {
-        getAllDependencies(resolvedDependencies)
-          .collect { ExternalDependency.fromResolvedDependency(it, internalProjectsPrefix) }
-          .toSet()
-          .sort { it.toString() }
-    }
-
-    Set<ResolvedDependency> getAllDependencies(Set<ResolvedDependency> resolvedDeps) {
-        resolvedDeps.inject([] as Set) {
-            accum, it ->
-                accum + it + getAllDependencies(it.children)
-        }
+        new ArrayList<ExternalDependency>(externalDeps.values())
     }
 }
