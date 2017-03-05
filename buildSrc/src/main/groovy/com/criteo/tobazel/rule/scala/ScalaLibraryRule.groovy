@@ -21,7 +21,7 @@ final class ScalaLibraryRule extends JavaRule {
             List<String> testTargets,
             Set<String> extraOpts = []) {
 
-        super(RuleType.SCALA_LIBRARY,
+        super(RuleType.SCALA_2_10_LIBRARY,
               name,
               visibility,
               deps,
